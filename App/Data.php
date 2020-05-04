@@ -8,8 +8,8 @@ class Data extends Model
 {
     protected $guarded=[];
 
-    public function data()
-    {
-        return $this->belongsTo(Data::class);
-    }
+            public function user()
+            {
+                return $this->belongsTo(User::class);
+            }
 }

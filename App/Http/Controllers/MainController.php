@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-
+use App\Role;
+use App\Route;
 use App\Routes;
 use App\User;
 use App\UserRoles;
@@ -21,15 +22,15 @@ class MainController extends Controller
         if ($value->user_role_id != null) {
             $role_ids = json_decode('[' . Auth::user()->userroles->role_id . ']', true);
             for ($x = 0; $x <= sizeof($role_ids[0]) - 1; $x++) {
-                $links[] = Routes::whereId($role_ids[0][$x])->first();
+                $links[] = Route::whereId($role_ids[0][$x])->first();
             }
             if (sizeof($role_ids[0]) == null) {
                 $rolessize = 0;
                 Session::put('admin', $rolessize);
             } else {
                 $rolessize = sizeof($role_ids[0]);
-               
-              
+
+
                 Session::put('admin', $rolessize);
 
             }
@@ -48,7 +49,7 @@ class MainController extends Controller
     public function AssignPrivilegeForm()
     {
 
-        $privileges = Routes::all();
+        $privileges = Route::all();
         $users = User::get()->all();
         if (Session::get('user_id') == null) {
             $data = null;
@@ -65,7 +66,7 @@ class MainController extends Controller
     public function getUserRoles(Request $request)
     {
         Session::put('id', $request->user_id);
-        $result = UserRoles::where('user_id', $request->user_id)->first();
+        $result = Role::where('user_id', $request->user_id)->first();
         Session::put('user_id', $result);
         return back();
     }
@@ -79,15 +80,15 @@ class MainController extends Controller
     public function AssignPrivilege(Request $request)
     {
         $user_id = Session::get('id');
-        $user_role_exist = UserRoles::where('user_id', $user_id)->get()->first();
+        $user_role_exist = Role::where('user_id', $user_id)->get()->first();
         if ($user_role_exist == null) {
             $data = implode(',', $request->role_id);
             $value = "[" . "" . $data . "" . "]";
-            $result = UserRoles::create(['user_id' => $user_id, 'role_id' => $value]);
+            $result = Role::create(['user_id' => $user_id, 'role_id' => $value]);
             $this->setUserRole($user_id, $result->id);
         } else {
 
-            UserRoles::whereId($user_role_exist->id)->update(['role_id' => $request->role_id]);
+            Role::whereId($user_role_exist->id)->update(['role_id' => $request->role_id]);
         }
 
         return back()->with('msg', 'Privileges granted  to user successfully');
@@ -106,7 +107,7 @@ class MainController extends Controller
 
     public function RegisterUser(Request $request)
     {
-      
+
         User::create([
             'name' => $request->name,
             'email' => $request->email,

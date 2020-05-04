@@ -26,9 +26,20 @@ class TransmissionController extends Controller
     }
     public function TrasnmitedData(array $device1, array $device2)
     {
+
         $co_ordinates =  array(['latitude_1' => $device1['latitude'], 'longitude_1' => $device1['longitude'], 'latitude_2' => $device2['latitude'], 'longitude_2' => $device2['longitude']]);
-        $calculated_distance = $this->CalculateDistance($co_ordinates);
-        $checked_criteria = $this->CheckCriteria($calculated_distance);
+        $co_ordinates = $co_ordinates[0];
+        $thetaValue = $co_ordinates['longitude_1'] - $co_ordinates['longitude_2'];
+        $distance = (sin(deg2rad($co_ordinates['latitude_1'])) * sin(deg2rad($co_ordinates['latitude_2']))) + (cos(deg2rad($co_ordinates['latitude_1'])) * cos(deg2rad($co_ordinates['latitude_2'])) * cos(deg2rad($thetaValue)));
+        $miles = acos($distance);
+        $miles = rad2deg($miles);
+        $miles = $miles * 60 * 1.1515;
+        $feet = $miles * 5280;
+        $yards = $feet / 3;
+        $kilometers = $miles * 1.609344;
+        $meters = $kilometers * 1000;
+        $calculated_distance = $meters;
+        return    $checked_criteria = $this->CheckCriteria($calculated_distance);
         if ($checked_criteria != 0) {
             $details =  $this->storeComputedDetails($device1, $device2, $calculated_distance);
             return    $this->DetailsExist($details['one'], $details['two']);
@@ -36,43 +47,12 @@ class TransmissionController extends Controller
             return 0;
         }
     }
-    public function CalculateDistance(array $co_ordinates)
-    {
-        $co_ordinates = $co_ordinates[0];
-        $shaffled_data = $this->ShaffleCoordinates($co_ordinates);
-        $thetaValue = $shaffled_data[0];
-        $distance = ((sin(deg2rad($co_ordinates['latitude_1'])) * sin(deg2rad($co_ordinates['latitude_2'])))
-            + (cos(deg2rad($co_ordinates['latitude_1'])) * cos(deg2rad($co_ordinates['latitude_2'])))) * cos(deg2rad($thetaValue));
-        $distance = acos($distance);
-        $distance = rad2deg($distance);
-        return    $this->DistanceInMeters($distance);
-    }
 
-    public function ShaffleCoordinates($co_ordinates)
-    {
-
-        if ($co_ordinates['longitude_1'] > $co_ordinates['longitude_2']) {
-            $longitude_difference = $co_ordinates['longitude_1'] - $co_ordinates['longitude_2'];
-            $latitude_difference  = $co_ordinates['latitude_1'] - $co_ordinates['latitude_1'];
-            return array($longitude_difference);
-        } else {
-            $longitude_difference = $co_ordinates['longitude_2'] - $co_ordinates['longitude_1'];
-            $latitude_difference  = $co_ordinates['latitude_2'] - $co_ordinates['latitude_1'];
-            return array($longitude_difference);
-        }
-    }
-
-    public function DistanceInMeters($raw_distance_value)
-    {
-        $distance = $raw_distance_value * 60 * 1.1515;
-        $distance = $distance * 1.609344;
-        return ceil(($distance / 1000));
-    }
     public function CheckCriteria($finalised_data)
     {
 
-        $default_check_against_distance = 1.5;
-        if (($default_check_against_distance <= $finalised_data) or (($default_check_against_distance <= ($finalised_data + 0.5)))) {
+        $default_check_against_distance = 2.0;
+        if (($finalised_data <= $default_check_against_distance)) {
             return $finalised_data;
         } else {
             return  0;         // 0 means data can be discarded
@@ -84,7 +64,7 @@ class TransmissionController extends Controller
 
         $already_incontact = $this->has_been_in_Contact($device1['user_id'], $device2['user_id']);
         if ($already_incontact == 1) {
-           $time= Session::get('time');
+            $time = Session::get('time');
             Incontact::where('user1_id', $device1['user_id'] && 'user2_id', $device2['user_id'])->update(['time' => $time, 'distance' => $distance]);
         } else {
 
@@ -129,9 +109,9 @@ class TransmissionController extends Controller
         $minutes_to = (int) $time_to[1];
 
         if ($minutes_to  > $minutes_from) {
-           $time =    $minutes_difference = $minutes_to - $minutes_from;
-           Session::put('time',$time);
-           return $time;
+            $time =    $minutes_difference = $minutes_to - $minutes_from;
+            Session::put('time', $time);
+            return $time;
         } else {
             return 0;
         }

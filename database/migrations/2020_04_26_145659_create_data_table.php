@@ -15,8 +15,8 @@ class CreateDataTable extends Migration
     {
         Schema::create('data', function (Blueprint $table) {
             $table->id();
-            $table->float('latitude');
-            $table->float('longitude');
+            $table->double('latitude');
+            $table->double('longitude');
             $table->integer('distance');
             $table->string('location');
             $table->unsignedBigInteger('user_id');
