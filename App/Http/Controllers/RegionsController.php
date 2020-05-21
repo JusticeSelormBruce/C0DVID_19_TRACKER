@@ -2,14 +2,10 @@
 
 namespace App\Http\Controllers;
 
-
-
-use App\User;
+use App\Region;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Session;
 
-class UserController extends Controller
+class RegionsController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -18,7 +14,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        return User::all();
+         return Region::all();
     }
 
     /**
@@ -29,10 +25,7 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-
-        $user_details =  $this->ValidateUserDetails();
-        $user_details['password'] =  Hash::make($user_details['password']);
-        return    User::create($user_details);
+        //
     }
 
     /**
@@ -43,7 +36,7 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        return  User::whereId($id);
+        //
     }
 
     /**
@@ -55,9 +48,7 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $user_details =  $this->ValidateUserDetails();
-        $user_details['password'] =  Hash::make($user_details['password']);
-        return User::whereId($id)->update($user_details);
+        //
     }
 
     /**
@@ -68,20 +59,6 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        return   User::whereId($id)->delete();
-    }
-
-    public function ValidateUserDetails()
-    {
-        return request()->validate([
-            'name' => 'required|string',
-            'username' => 'required',
-            'password' => 'required',
-            'phone' => 'required|string',
-            'phone1' => '',
-            'gender' => 'required|string',
-            'domicile' => 'required|required',
-            'region_id' => 'required|numeric'
-        ]);
+        //
     }
 }

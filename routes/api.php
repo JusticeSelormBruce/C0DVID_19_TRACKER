@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,4 +22,6 @@ use Illuminate\Support\Facades\Route;
 Route::resource('transmission', 'TransmissionController');
 Route::resource('emergency', 'EmergencyController');
 Route::resource('user', 'UserController');
+Route::resource('region', 'RegionsController');
+Route::post('user-login', 'UserLoginController@login');
 

@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use Illuminate\Support\Facades\Auth;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -19,4 +19,29 @@ Route::get('/', function () {
 
 Auth::routes();
 
+
 Route::get('/home', 'HomeController@index')->name('home');
+
+Route::get('register-user','HomeController@registrationIndex');
+Route::post('create-user-account','HomeController@createUserAccount');
+
+
+Route::get('dashboard', 'MainController@dashboard');
+
+Route::get('admin/assign-privilege-index', 'MainController@AssignPrivilegeIndex');
+Route::get('admin/assign-privilege-form', 'MainController@AssignPrivilegeForm');
+Route::post('admin/assign-privilege', 'MainController@AssignPrivilege');
+Route::post('admin/get-user-roles', 'MainController@getUserRoles')->name('get.user.roles');
+Route::get('admin/user-accounts-index', 'MainController@UserAccountsIndex');
+Route::post('admin/register-user', 'MainController@RegisterUser');
+
+
+
+
+//Reset User Password Route Start
+Route::get('admin/reset-password', 'MainController@resetPasswordIndex');
+Route::post('reset-password', 'MainController@resetPassword');
+
+//Change User Password
+Route::get('change-password-index', 'MainController@changePasswordIndex');
+Route::post('change-password', 'MainController@changePassword');

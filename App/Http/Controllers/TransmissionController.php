@@ -29,16 +29,8 @@ class TransmissionController extends Controller
 
         $co_ordinates =  array(['latitude_1' => $device1['latitude'], 'longitude_1' => $device1['longitude'], 'latitude_2' => $device2['latitude'], 'longitude_2' => $device2['longitude']]);
         $co_ordinates = $co_ordinates[0];
-        $thetaValue = $co_ordinates['longitude_1'] - $co_ordinates['longitude_2'];
-        $distance = (sin(deg2rad($co_ordinates['latitude_1'])) * sin(deg2rad($co_ordinates['latitude_2']))) + (cos(deg2rad($co_ordinates['latitude_1'])) * cos(deg2rad($co_ordinates['latitude_2'])) * cos(deg2rad($thetaValue)));
-        $miles = acos($distance);
-        $miles = rad2deg($miles);
-        $miles = $miles * 60 * 1.1515;
-        $feet = $miles * 5280;
-        $yards = $feet / 3;
-        $kilometers = $miles * 1.609344;
-        $meters = $kilometers * 1000;
-        $calculated_distance = $meters;
+      return   $calculated_distance =$this->haveersine($co_ordinates);
+
         return    $checked_criteria = $this->CheckCriteria($calculated_distance);
         if ($checked_criteria != 0) {
             $details =  $this->storeComputedDetails($device1, $device2, $calculated_distance);
@@ -46,6 +38,17 @@ class TransmissionController extends Controller
         } else {
             return 0;
         }
+    }
+
+    public function haveersine($co_ordinates)
+    {
+
+        $diff_lat= $co_ordinates['latitude_1'] - $co_ordinates['latitude_2'];
+        $diff_long = $co_ordinates['longitude_1'] - $co_ordinates['longitude_2'];
+        $a = pow(sin(($diff_lat / 2)), 2) + (cos($co_ordinates['latitude_1']) * cos($co_ordinates['latitude_2'])) * (pow(sin($diff_long / 2), 2));
+        $c= atan(($a/(1-$a)));
+        return $result = ((63710000)* $c);
+
     }
 
     public function CheckCriteria($finalised_data)

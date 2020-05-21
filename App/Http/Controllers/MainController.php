@@ -18,9 +18,9 @@ class MainController extends Controller
 
     public function dashboard()
     {
-        $value = Auth::user();
-        if ($value->user_role_id != null) {
-            $role_ids = json_decode('[' . Auth::user()->userroles->role_id . ']', true);
+    
+        if (Auth::user()->routes_ids != null) {
+            $role_ids = json_decode('[' . Auth::user()->routes_ids . ']', true);
             for ($x = 0; $x <= sizeof($role_ids[0]) - 1; $x++) {
                 $links[] = Route::whereId($role_ids[0][$x])->first();
             }
@@ -29,10 +29,7 @@ class MainController extends Controller
                 Session::put('admin', $rolessize);
             } else {
                 $rolessize = sizeof($role_ids[0]);
-
-
                 Session::put('admin', $rolessize);
-
             }
         } else {
             $links = null;
@@ -54,11 +51,9 @@ class MainController extends Controller
         if (Session::get('user_id') == null) {
             $data = null;
             $userRoles = null;
-
         } else {
             $data = $this->getSelectedRolesLogic();
             $userRoles = $data[0];
-
         }
         $me = Session::get('id');
         return view('admin.privilege.form', compact('privileges', 'users', 'data', 'me', 'userRoles'));
@@ -92,7 +87,6 @@ class MainController extends Controller
         }
 
         return back()->with('msg', 'Privileges granted  to user successfully');
-
     }
 
     public function setUserRole($user_id, $user_role_id)
@@ -139,7 +133,4 @@ class MainController extends Controller
         User::whereId(Auth::id())->update(['password' => Hash::make($request->password)]);
         return back()->with('msg', 'User Password Changed Successfully');
     }
-
 }
-
-
