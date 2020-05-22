@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Auth;
 //     return $request->user();
 // });
 
-Route::resource('transmission', 'TransmissionController');
+Route::post('transmission', 'TransmissionController@store');
 Route::resource('emergency', 'EmergencyController');
 Route::resource('user', 'UserController');
 Route::resource('region', 'RegionsController');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Data;
 use App\Incontact;
+use App\IncontactMigrate;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -22,19 +23,13 @@ class TransmissionController extends Controller
 
         $device1 = $request['device1'][0];
         $device2 = $request['device2'][0];
-        return  $this->TrasnmitedData($device1, $device2);
-    }
-    public function TrasnmitedData(array $device1, array $device2)
-    {
-
         $co_ordinates =  array(['latitude_1' => $device1['latitude'], 'longitude_1' => $device1['longitude'], 'latitude_2' => $device2['latitude'], 'longitude_2' => $device2['longitude']]);
         $co_ordinates = $co_ordinates[0];
-      return   $calculated_distance =$this->haveersine($co_ordinates);
-
-        return    $checked_criteria = $this->CheckCriteria($calculated_distance);
+        $calculated_distance = $this->haveersine($co_ordinates);
+        $checked_criteria = $this->CheckCriteria($calculated_distance);
         if ($checked_criteria != 0) {
             $details =  $this->storeComputedDetails($device1, $device2, $calculated_distance);
-            return    $this->DetailsExist($details['one'], $details['two']);
+            $this->DetailsExist($details['one'], $details['two']);
         } else {
             return 0;
         }
@@ -43,12 +38,12 @@ class TransmissionController extends Controller
     public function haveersine($co_ordinates)
     {
 
-        $diff_lat= $co_ordinates['latitude_1'] - $co_ordinates['latitude_2'];
+        $diff_lat = $co_ordinates['latitude_1'] - $co_ordinates['latitude_2'];
         $diff_long = $co_ordinates['longitude_1'] - $co_ordinates['longitude_2'];
-        $a = pow(sin(($diff_lat / 2)), 2) + (cos($co_ordinates['latitude_1']) * cos($co_ordinates['latitude_2'])) * (pow(sin($diff_long / 2), 2));
-        $c= atan(($a/(1-$a)));
-        return $result = ((63710000)* $c);
-
+        $a = pow(sin(deg2rad(($diff_lat / 2))), 2) + (cos(deg2rad($co_ordinates['latitude_1'])) * cos(deg2rad($co_ordinates['latitude_2']))) * (pow(sin(deg2rad($diff_long / 2)), 2));
+        $data = sqrt($a) / (sqrt(1 - $a));
+        $c = 2 * atan($data);
+        return ((63710000) * $c);
     }
 
     public function CheckCriteria($finalised_data)
@@ -58,19 +53,19 @@ class TransmissionController extends Controller
         if (($finalised_data <= $default_check_against_distance)) {
             return $finalised_data;
         } else {
-            return  0;         // 0 means data can be discarded
+            return  0;         // discard data
         }
     }
 
     public function storeComputedDetails($device1,  $device2, $distance)
     {
 
+
         $already_incontact = $this->has_been_in_Contact($device1['user_id'], $device2['user_id']);
         if ($already_incontact == 1) {
             $time = Session::get('time');
             Incontact::where('user1_id', $device1['user_id'] && 'user2_id', $device2['user_id'])->update(['time' => $time, 'distance' => $distance]);
         } else {
-
             $device_1 = array('latitude' => $device1['latitude'], 'longitude' => $device1['longitude'], 'distance' => $distance, 'location' => $device1['location'], 'user_id' => $device1['user_id']);
             $device_2 = array('latitude' => $device2['latitude'], 'longitude' => $device2['longitude'], 'distance' => $distance, 'location' => $device2['location'], 'user_id' => $device2['user_id']);
             $data_device1 =  Data::create($device_1);
@@ -85,7 +80,8 @@ class TransmissionController extends Controller
         $result1 =  DB::table('contacts')->where('user_id', $device_one['user_id'])->count();
         $result2 =   DB::table('contacts')->where('user_id', $device_two['user_id'])->count();
 
-        if (($result1 and $result2) != null) {
+        if (($result1 * $result2) == 1) {
+
             $currentTime = date("H:i:s");
             $range = $this->CalculateRange($device_one['user_id']);
             \App\Contact::where('user_id', $device_one['user_id'])->update(['to' => $currentTime, 'range' => $range]);
@@ -112,7 +108,7 @@ class TransmissionController extends Controller
         $minutes_to = (int) $time_to[1];
 
         if ($minutes_to  > $minutes_from) {
-            $time =    $minutes_difference = $minutes_to - $minutes_from;
+            $time = $minutes_to - $minutes_from;
             Session::put('time', $time);
             return $time;
         } else {
@@ -123,9 +119,11 @@ class TransmissionController extends Controller
     public function Incontact($device_one, $device_two, $range)
     {
         $data = array('user1_id' => $device_one['user_id'], 'user2_id' => $device_two['user_id'], 'time' => $range, 'distance' => $device_two['distance']);
-        if ($range >= 1) {
-            \App\Incontact::create($data);
+        if ($range >= 5) {
+            \App\Incontact::where('user1_id', $device_one['user_id'])->where('user2_id', $device_two['user_id'])->update($data);
+            // IncontactMigrate::create();
         } else {
+
             return 0;
         }
     }
@@ -141,5 +139,13 @@ class TransmissionController extends Controller
     public function  has_been_in_Contact($user_one_id, $user_two_id)
     {
         return    DB::table('incontacts')->where('user1_id', $user_one_id && 'user2_id', $user_two_id)->count();
+    }
+
+    public function migrateData($data)
+    {
+
+        $result =   \App\IncontactMigrate::where('user1_id', $data['user_id'])->where('user2_id', $data['user_id'])->where('created_at', '')->count();
+        if ($result == 1) {
+        }
     }
 }
