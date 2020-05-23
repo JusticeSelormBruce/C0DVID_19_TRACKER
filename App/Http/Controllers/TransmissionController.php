@@ -121,7 +121,7 @@ class TransmissionController extends Controller
         $data = array('user1_id' => $device_one['user_id'], 'user2_id' => $device_two['user_id'], 'time' => $range, 'distance' => $device_two['distance']);
         if ($range >= 5) {
             \App\Incontact::where('user1_id', $device_one['user_id'])->where('user2_id', $device_two['user_id'])->update($data);
-            // IncontactMigrate::create();
+
         } else {
 
             return 0;
@@ -141,11 +141,5 @@ class TransmissionController extends Controller
         return    DB::table('incontacts')->where('user1_id', $user_one_id && 'user2_id', $user_two_id)->count();
     }
 
-    public function migrateData($data)
-    {
 
-        $result =   \App\IncontactMigrate::where('user1_id', $data['user_id'])->where('user2_id', $data['user_id'])->where('created_at', '')->count();
-        if ($result == 1) {
-        }
-    }
 }
